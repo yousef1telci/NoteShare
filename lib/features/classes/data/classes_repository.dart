@@ -50,6 +50,9 @@ class ClassesRepository {
     required String description,
     required bool isPrivate,
     String? category,
+    String? faculty,
+    String? major,
+    String? academicYear,
   }) async {
     final userId = _supabase.auth.currentUser!.id;
     
@@ -58,6 +61,9 @@ class ClassesRepository {
       'description': description.isEmpty ? null : description,
       'is_private': isPrivate,
       'category': category,
+      'faculty': faculty,
+      'major': major,
+      'academic_year': academicYear,
       'created_by': userId,
     }).select().single();
 
@@ -80,12 +86,18 @@ class ClassesRepository {
     required String description,
     required bool isPrivate,
     String? category,
+    String? faculty,
+    String? major,
+    String? academicYear,
   }) async {
     await _supabase.from('classes').update({
       'name': name,
       'description': description.isEmpty ? null : description,
       'is_private': isPrivate,
       'category': category,
+      'faculty': faculty,
+      'major': major,
+      'academic_year': academicYear,
     }).eq('id', classId);
   }
 

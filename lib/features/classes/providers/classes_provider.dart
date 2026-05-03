@@ -14,16 +14,33 @@ final myClassesProvider = FutureProvider.autoDispose<List<ClassModel>>((ref) asy
 });
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
+final facultyFilterProvider = StateProvider<String?>((ref) => null);
+final majorFilterProvider = StateProvider<String?>((ref) => null);
+final yearFilterProvider = StateProvider<String?>((ref) => null);
 
 final discoverClassesProvider = FutureProvider.autoDispose<List<ClassModel>>((ref) async {
   final repository = ref.watch(classesRepositoryProvider);
   final query = ref.watch(searchQueryProvider);
+  final faculty = ref.watch(facultyFilterProvider);
+  final major = ref.watch(majorFilterProvider);
+  final year = ref.watch(yearFilterProvider);
   
   List<ClassModel> publicClasses;
   if (query.trim().isEmpty) {
     publicClasses = await repository.getDiscoverClasses();
   } else {
     publicClasses = await repository.searchPublicClasses(query);
+  }
+  
+  // Apply category tree filters
+  if (faculty != null && faculty.isNotEmpty) {
+    publicClasses = publicClasses.where((c) => c.faculty == faculty).toList();
+  }
+  if (major != null && major.isNotEmpty) {
+    publicClasses = publicClasses.where((c) => c.major == major).toList();
+  }
+  if (year != null && year.isNotEmpty) {
+    publicClasses = publicClasses.where((c) => c.academicYear == year).toList();
   }
   
   // Filter out classes the user has already joined
@@ -44,6 +61,9 @@ class ClassActionController extends StateNotifier<AsyncValue<void>> {
     required String description,
     required bool isPrivate,
     String? category,
+    String? faculty,
+    String? major,
+    String? academicYear,
   }) async {
     state = const AsyncValue.loading();
     try {
@@ -52,6 +72,9 @@ class ClassActionController extends StateNotifier<AsyncValue<void>> {
         description: description,
         isPrivate: isPrivate,
         category: category,
+        faculty: faculty,
+        major: major,
+        academicYear: academicYear,
       );
       state = const AsyncValue.data(null);
       // Refresh my classes
@@ -67,6 +90,9 @@ class ClassActionController extends StateNotifier<AsyncValue<void>> {
     required String description,
     required bool isPrivate,
     String? category,
+    String? faculty,
+    String? major,
+    String? academicYear,
   }) async {
     state = const AsyncValue.loading();
     try {
@@ -76,6 +102,9 @@ class ClassActionController extends StateNotifier<AsyncValue<void>> {
         description: description,
         isPrivate: isPrivate,
         category: category,
+        faculty: faculty,
+        major: major,
+        academicYear: academicYear,
       );
       state = const AsyncValue.data(null);
       _ref.invalidate(myClassesProvider);

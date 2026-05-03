@@ -49,3 +49,15 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
 final authControllerProvider = StateNotifierProvider<AuthController, AsyncValue<void>>((ref) {
   return AuthController(ref.watch(supabaseProvider));
 });
+
+final userProfileProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
+  final supabase = ref.watch(supabaseProvider);
+  final user = supabase.auth.currentUser;
+  if (user == null) return null;
+  try {
+    final response = await supabase.from('profiles').select().eq('id', user.id).single();
+    return response;
+  } catch (e) {
+    return null;
+  }
+});

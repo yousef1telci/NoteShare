@@ -12,8 +12,23 @@ class DiscoverClassesScreen extends ConsumerStatefulWidget {
 
 class _DiscoverClassesScreenState extends ConsumerState<DiscoverClassesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final List<String> _categories = ["All", "Engineering", "Medicine", "Erasmus", "General"];
-  String _selectedCategory = "All";
+
+  final List<String> _faculties = [
+    'Engineering', 'Medicine', 'Technology', 'Science', 'Education', 'Economics'
+  ];
+  final List<String> _majors = [
+    "Software Engineering", "Computer Engineering", "Information Systems Engineering", 
+    "Electrical and Electronics Engineering", "Mechanical Engineering", "Civil Engineering", "Industrial Engineering",
+    "General Medicine", "Internal Medicine", "General Surgery", "Pediatrics", 
+    "Obstetrics and Gynecology", "Cardiology", "Neurology", "Orthopedics", 
+    "Ophthalmology", "Radiology", "Anesthesiology", "Dermatology", "ENT (Ear, Nose, and Throat)",
+    "Electrical Engineering", "Manufacturing Engineering", "Energy Systems Engineering",
+    "Mathematics", "Physics", "Chemistry", "Biology",
+    "Computer Education and Instructional Technology", "Primary Education", 
+    "Mathematics Education", "Science Education", "English Language Teaching", "Preschool Education",
+    "Business Administration", "Economics", "Finance", "Public Administration"
+  ].toSet().toList(); // Ensure unique values
+  final List<String> _years = ['1', '2', '3', '4'];
 
   @override
   void dispose() {
@@ -25,10 +40,45 @@ class _DiscoverClassesScreenState extends ConsumerState<DiscoverClassesScreen> {
     ref.read(searchQueryProvider.notifier).state = query;
   }
 
+  Widget _buildDropdownFilter(String hint, String? value, List<String> items, Function(String?) onChanged) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            hint: Text(hint, style: const TextStyle(fontSize: 14)),
+            value: value,
+            icon: const Icon(Icons.filter_list, size: 16),
+            onChanged: onChanged,
+            items: [
+              const DropdownMenuItem<String>(
+                value: null,
+                child: Text('All', style: TextStyle(fontSize: 14)),
+              ),
+              ...items.map((item) => DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(item, style: const TextStyle(fontSize: 14)),
+                  ))
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final discoverClassesAsync = ref.watch(discoverClassesProvider);
     final actionState = ref.watch(classActionControllerProvider);
+    final selectedFaculty = ref.watch(facultyFilterProvider);
+    final selectedMajor = ref.watch(majorFilterProvider);
+    final selectedYear = ref.watch(yearFilterProvider);
 
     // Listen to join action success to show snackbar
     ref.listen<AsyncValue<void>>(
@@ -73,9 +123,6 @@ class _DiscoverClassesScreenState extends ConsumerState<DiscoverClassesScreen> {
                             onPressed: () {
                               _searchController.clear();
                               _onSearchChanged('');
-                              setState(() {
-                                _selectedCategory = "All";
-                              });
                             },
                           )
                         : null,
@@ -89,36 +136,25 @@ class _DiscoverClassesScreenState extends ConsumerState<DiscoverClassesScreen> {
                   ),
                 ),
               ),
-              // Categories
+              // Filter Bar
               SizedBox(
                 height: 50,
-                child: ListView.builder(
+                child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: _categories.length,
-                  itemBuilder: (context, index) {
-                    final category = _categories[index];
-                    final isSelected = category == _selectedCategory;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: ChoiceChip(
-                        label: Text(category),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedCategory = category;
-                            if (category == "All") {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            } else {
-                              _searchController.text = category;
-                              _onSearchChanged(category);
-                            }
-                          });
-                        },
-                      ),
-                    );
-                  },
+                  child: Row(
+                    children: [
+                      _buildDropdownFilter('Faculty', selectedFaculty, _faculties, (val) {
+                        ref.read(facultyFilterProvider.notifier).state = val;
+                      }),
+                      _buildDropdownFilter('Major', selectedMajor, _majors, (val) {
+                        ref.read(majorFilterProvider.notifier).state = val;
+                      }),
+                      _buildDropdownFilter('Year', selectedYear, _years, (val) {
+                        ref.read(yearFilterProvider.notifier).state = val;
+                      }),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -133,11 +169,16 @@ class _DiscoverClassesScreenState extends ConsumerState<DiscoverClassesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search_off_outlined, size: 80, color: Colors.grey[400]),
+                  Icon(Icons.category_outlined, size: 80, color: Colors.grey[400]),
                   const SizedBox(height: 16),
                   Text(
-                    'No public classes found.',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                    'No classes match these filters yet.',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Try adjusting your search or filters.',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 14),
                   ),
                 ],
               ),
