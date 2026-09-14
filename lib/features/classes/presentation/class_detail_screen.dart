@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../materials/providers/materials_provider.dart';
 import '../../materials/domain/material_model.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -98,7 +99,7 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> with Sing
 
   Future<String> _fetchAIResponse(String prompt) async {
     try {
-      final apiKey = ''; // TODO: Load from .env file to prevent GitHub push rejection
+      final apiKey = dotenv.env['GEMINI_API_KEY'] ?? ''; 
      // final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
       final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: apiKey);
       final content = [Content.text(prompt)];
