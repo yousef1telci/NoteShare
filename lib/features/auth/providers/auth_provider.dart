@@ -14,6 +14,18 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
 
   AuthController(this._supabase) : super(const AsyncValue.data(null));
 
+  String _mapAuthException(AuthException e) {
+    final msg = e.message.toLowerCase();
+    if (msg.contains('invalid login credentials')) {
+      return 'Invalid email or password';
+    } else if (msg.contains('user_already_exists') || msg.contains('already registered') || msg.contains('user already exists')) {
+      return 'Email already registered';
+    }
+    // Fallback: Return the actual message (e.g., 'Rate limit exceeded', 'Password should be at least 6 characters')
+    // instead of hiding it behind a generic string, so users understand why signup failed.
+    return e.message;
+  }
+
   Future<void> login(String email, String password) async {
     state = const AsyncValue.loading();
     try {
@@ -22,8 +34,10 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         password: password,
       );
       state = const AsyncValue.data(null);
+    } on AuthException catch (e, st) {
+      state = AsyncValue.error(_mapAuthException(e), st);
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      state = AsyncValue.error('An unexpected error occurred, please try again later.', st);
     }
   }
 
@@ -36,8 +50,10 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         data: {'full_name': fullName},
       );
       state = const AsyncValue.data(null);
+    } on AuthException catch (e, st) {
+      state = AsyncValue.error(_mapAuthException(e), st);
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      state = AsyncValue.error('An unexpected error occurred, please try again later.', st);
     }
   }
 

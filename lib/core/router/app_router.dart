@@ -11,14 +11,13 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/classes/presentation/class_detail_screen.dart';
 import '../../features/classes/domain/class_model.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
-
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
+  final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+  final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/my-classes',
     redirect: (context, state) {
       if (authState.isLoading) return null;
@@ -47,9 +46,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SignUpScreen(),
       ),
       ShellRoute(
-        navigatorKey: _shellNavigatorKey,
+        navigatorKey: shellNavigatorKey,
         builder: (context, state, child) {
-          return MainShell(child: child);
+          return MainShell(
+            currentLocation: state.matchedLocation,
+            child: child,
+          );
         },
         routes: [
           GoRoute(
@@ -68,7 +70,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/class-detail',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final cls = state.extra as ClassModel?;
           final classId = state.uri.queryParameters['id'] ?? cls?.id ?? '';

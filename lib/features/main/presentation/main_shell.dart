@@ -3,11 +3,16 @@ import 'package:go_router/go_router.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
+  final String currentLocation;
 
-  const MainShell({super.key, required this.child});
+  const MainShell({
+    super.key,
+    required this.child,
+    required this.currentLocation,
+  });
 
-  int _calculateSelectedIndex(BuildContext context) {
-    final String location = GoRouterState.of(context).matchedLocation;
+  int _calculateSelectedIndex() {
+    final String location = currentLocation;
     if (location.startsWith('/my-classes')) {
       return 0;
     }
@@ -39,7 +44,7 @@ class MainShell extends StatelessWidget {
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _calculateSelectedIndex(context),
+        selectedIndex: _calculateSelectedIndex(),
         onDestinationSelected: (index) => _onItemTapped(index, context),
         destinations: const [
           NavigationDestination(
